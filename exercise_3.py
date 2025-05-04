@@ -1,18 +1,25 @@
 import tkinter as tk
 from tkinter import *
+import math
 
+from django.contrib.sitemaps.views import index
 
 root = tk.Tk()
-root.geometry('350x500')
+root.geometry('400x500')
 root.title('Калькулятор')
 
 def menu():
     pass
 
 def add_digit(digit):
-    new_digit = entry.get()+ str(digit)
-    entry.delete(0,tk.END)
-    entry.insert(0,new_digit)
+    value = entry.get()
+    if value == '0':
+        entry.delete(0, tk.END)
+        entry.insert(0, digit)
+    else:
+        new_digit = entry.get()+ str(digit)
+        entry.delete(0,tk.END)
+        entry.insert(0,new_digit)
 
 def add_operation(operation):
     value = entry.get()
@@ -23,12 +30,43 @@ def add_operation(operation):
 
 def clear():
     entry.delete(0,tk.END)
+    entry.insert(0, 0)
 
 def calculate():
     try:
         value = entry.get()
         result = eval(value)
         add_history(f'{value} = {result}')
+        entry.delete(0, tk.END)
+        entry.insert(0, result)
+    except Exception as e:
+        add_history(f'Ошибка {e}')
+        entry.delete(0, tk.END)
+
+def proc():
+    value = entry.get()
+    try:
+        express = value.replace("%", "")
+        result = eval(express)/100
+        add_history(f'{value} = {result}')
+        entry.delete(0, tk.END)
+        entry.insert(0, result)
+    except Exception as e:
+        add_history(f'Ошибка {e}')
+        entry.delete(0, tk.END)
+
+def pow_dig2():
+    value = entry.get()
+    result = int(value)**2
+    add_history(f'{value} ^ 2 = {result}')
+    entry.delete(0, tk.END)
+    entry.insert(0, result)
+
+def result_sqrt():
+    try:
+        value = entry.get()
+        result = math.sqrt(int(value))
+        add_history(f'{result}')
         entry.delete(0, tk.END)
         entry.insert(0, result)
     except Exception as e:
@@ -44,15 +82,19 @@ def sum_rec(val):
 
 def rec():
     digit = entry2.get()
-    print(f'Количество строк - {sum_rec(digit)}')
+    res = sum_rec(digit)
+    print(f'Количество строк - {res}')
+    text_result.config(height=res)
 
 def add_history(operation):
     text_result.config(state='normal')
     text_result.insert(tk.END,f'{operation}\n')
     text_result.config(state='disabled')
 
+
+expression = tk.StringVar(value="0")
 text_result = tk.Text(root, height=11, width=33,state='disabled', wrap='word')
-entry = tk.Entry(root, justify=tk.RIGHT)
+entry = tk.Entry(root, justify=tk.RIGHT, textvariable=expression)
 tk.Label(text='Введите ID студента').grid(row=8, column=0, padx=5, pady=5)
 entry2 = tk.Entry(root)
 tk.Button(text='C', command=clear, width=5).grid(row=2,column=3,padx=5,pady=5, sticky = 'wens')
@@ -60,6 +102,9 @@ tk.Button(text='Menu', command=menu).grid(row=2,column=0,padx=5,pady=5, sticky =
 tk.Button(text='<>', command=rec).grid(row=2,column=1,padx=5,pady=5, sticky = 'wens')
 tk.Button(text='=', command=calculate).grid(row=7, column=1,padx=5,pady=5,sticky ='wens', columnspan=2)
 tk.Button(text="+", command = lambda :add_operation('+')).grid(row=4, column=3, padx=5, pady=5, sticky='wens')
+tk.Button(text="%", command = lambda :proc()).grid(row=4, column=5, padx=5, pady=5, sticky='wens')
+tk.Button(text="^2", command = lambda :pow_dig2()).grid(row=5, column=5, padx=5, pady=5, sticky='wens')
+tk.Button(text="#", command = lambda :result_sqrt()).grid(row=5, column=5, padx=5, pady=5, sticky='wens')
 tk.Button(text="-", command = lambda :add_operation('-')).grid(row=5, column=3, padx=5, pady=5, sticky='wens')
 tk.Button(text="*", command = lambda :add_operation('*')).grid(row=6, column=3, padx=5, pady=5, sticky='wens')
 tk.Button(text="/", command = lambda :add_operation('/')).grid(row=7, column=3, padx=5, pady=5, sticky='wens')
