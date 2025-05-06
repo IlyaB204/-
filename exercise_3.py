@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import *
 import math
+import re
 
 from django.contrib.sitemaps.views import index
 
@@ -74,10 +75,13 @@ def add_digit(digit):
     if value == '0' and digit == '-':
         entry.delete(0, tk.END)
         entry.insert(0, digit)
-    elif value == '-' and digit in '+/*':
+    elif value == '-' and digit in '+/*^':
         new_value = '0' + digit
         entry.delete(0, tk.END)
         entry.insert(0, new_value)
+    elif value == '0' and digit not in '+/*^':
+        entry.delete(0, tk.END)
+        entry.insert(0,digit)
     elif value[-1] in '+-*/':
         if digit in '+-*/':
             value = value[:-1]
@@ -116,13 +120,36 @@ def clear():
 def calculate():
     try:
         value = entry.get()
-        result = eval(value)
-        add_history(f'{value} = {result}')
-        entry.delete(0, tk.END)
-        entry.insert(0, result)
+        print(value)
+        match = re.search(r'(\d+)\s*\^\s*(\d+)', value)
+
+        if match:
+            base = int(match.group(1))
+            exp = int(match.group(2))
+            print(f'znach-1 = {base} and znach-2 = {exp}')
+            res = pow_dig(base, exp)
+            new_value = re.sub(r'(\d+)\s*\^\s*(\d+)', str(res), value)
+            print(value)
+            result=eval(new_value)
+            add_history(f'{value} = {result}')
+            entry.delete(0, tk.END)
+            entry.insert(0, result)
+        else:
+            result = eval(value)
+            add_history(f'{value} = {result}')
+            entry.delete(0, tk.END)
+            entry.insert(0, result)
+
     except Exception as e:
         add_history(f'Ошибка {e}')
         entry.delete(0, tk.END)
+
+
+def pow_dig(base,exp):
+    res = math.pow(base,exp)
+    print(res)
+    return int(res)
+
 
 def proc():
     value = entry.get()
@@ -226,9 +253,12 @@ tk.Button(text='Menu', command=menu).grid(row=2,column=0,padx=5,pady=5, sticky =
 tk.Button(text='<>', command=rec).grid(row=2,column=1,padx=5,pady=5, sticky = 'wens')
 tk.Button(text='=', command=calculate).grid(row=7, column=1,padx=5,pady=5,sticky ='wens', columnspan=2)
 tk.Button(text="+", command = lambda :add_digit('+')).grid(row=4, column=3, padx=5, pady=5, sticky='wens')
-tk.Button(text="%", command = lambda :proc()).grid(row=4, column=5, padx=5, pady=5, sticky='wens')
+tk.Button(text="^", command = lambda :add_digit('^')).grid(row=5, column=5, padx=5, pady=5, sticky='wens')
+tk.Button(text="(", command = lambda :add_digit('(')).grid(row=6, column=5, padx=5, pady=5, sticky='wens')
+tk.Button(text=")", command = lambda :add_digit(')')).grid(row=7, column=5, padx=5, pady=5, sticky='wens')
+tk.Button(text="%", command = lambda :proc()).grid(row=3, column=5, padx=5, pady=5, sticky='wens')
 tk.Button(text="^2", command = lambda :pow_dig2()).grid(row=5, column=5, padx=5, pady=5, sticky='wens')
-tk.Button(text="#", command = lambda :result_sqrt()).grid(row=5, column=5, padx=5, pady=5, sticky='wens')
+tk.Button(text="#", command = lambda :result_sqrt()).grid(row=4, column=5, padx=5, pady=5, sticky='wens')
 tk.Button(text="-", command = lambda :add_digit('-')).grid(row=5, column=3, padx=5, pady=5, sticky='wens')
 tk.Button(text="*", command = lambda :add_digit('*')).grid(row=6, column=3, padx=5, pady=5, sticky='wens')
 tk.Button(text="/", command = lambda :add_digit('/')).grid(row=7, column=3, padx=5, pady=5, sticky='wens')
